@@ -1,1 +1,1 @@
-web: gunicorn puertos.wsgi
+web: python manage.py collectstatic && gunicorn puertos.wsgi
