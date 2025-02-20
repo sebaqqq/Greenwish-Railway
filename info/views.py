@@ -85,11 +85,11 @@ def datos_san_antonio(url):
         options = Options()
         options.headless = True  
 
-        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        
-        os.environ["WDM_CACHE"] = "/tmp"
-
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        
+        # os.environ["WDM_CACHE"] = "/tmp"
+
+        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         
         driver.get(url)
 
