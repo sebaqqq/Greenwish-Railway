@@ -14,10 +14,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
 import re
-import xlsxwriter
 from datetime import datetime
 import locale
-import os
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -83,9 +81,10 @@ def datos_valparaiso(url):
 def datos_san_antonio(url):
     try:
         options = Options()
-        options.headless = True  
-
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        options.headless = False  
+        
+        chrome_path = ChromeDriverManager().install()
+        driver = webdriver.Chrome(service=Service(chrome_path), options=options)
         
         # os.environ["WDM_CACHE"] = "/tmp"
 
