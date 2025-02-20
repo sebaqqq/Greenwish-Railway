@@ -1,0 +1,183 @@
+{% load dict_extras %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Greenwish | Información </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Signika:wght@300..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'css/index.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'css/seleccionadoIndex.css' %}"
+    />
+    <link rel="shortcut icon" href="../../../static/images/logo.jpg" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <img src="{% static 'images/logo.jpg' %}" alt="Greenwish" class="img-logo" />
+        <h1 class="title-puerto-maritimo">Greenwish Port Tracking</h1>
+        <div class="select-container">
+          <form method="get">
+            <label for="puerto">Seleccione el Puerto:</label>
+            <select name="puerto" id="puerto">
+              <option value="Valparaíso" {% if puerto == "Valparaíso" %}selected{% endif %}>Valparaíso</option>
+              <option value="San Antonio" {% if puerto == "San Antonio" %}selected{% endif %}>San Antonio</option>
+            </select>
+            <button class="btn-cargar-datos" type="submit">Cargar Datos</button>
+          </form>
+        </div>
+      </header>
+
+      <div id="update-notification" style="display:none; background:transparent; padding:10px; border: 2px solid #275037; margin-top:10px; border-radius: 20px; margin-bottom: 40px;"></div>
+
+      {% if selected_ships %}
+        <h3 class="title-selected-ships">Mis naves seleccionadas:</h3>
+        <ul class="ship-list">
+          {% for idx in selected_ships %}
+            {% if datos|length > idx %}
+              <li class="ship-item">
+                {{ datos|index:idx|get_item:clave }}
+                <div class="ship-links">
+                  <a href="#" class="view-details" data-idx="{{ idx }}" data-puerto="{{ puerto }}">Ver Detalle</a>
+                  <a href="{% url 'eliminar_nave' puerto idx %}" class="remove-ship">Eliminar</a>
+                </div>
+                <div id="ship-details-{{ idx }}" class="ship-details" style="display: none; max-height: 0px; overflow: hidden; transition: max-height 0.5s ease-in-out; width:300px ">
+                  <button class="close-details" aria-label="Cerrar detalle">
+                    Cerrar detalle
+                  </button>                  
+                  <h3 class="title-detalle">Detalles de la nave</h3>
+                  <ul id="details-list-{{ idx }}">
+                  </ul>
+                </div>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <h2 class="titlePuerto">Información de naves:</h2>
+
+      {% if datos %}
+      
+        <form method="POST" action="{% url 'descargar_excel' %}">
+          {% csrf_token %}
+          <input type="hidden" name="puerto" value="{{ puerto }}">
+          <button type="submit" name="descargar_excel" class="btn-seleccionar">Descargar Excel</button>
+        </form>
+    
+
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="puerto" value="{{ puerto }}">
+          <button class="btn-seleccionar" type="submit">Seleccionar Naves</button>
+          <div class="card-container">
+            {% for item in datos %}
+              <div class="card">
+                <input type="checkbox" name="selected_ship" value="{{ forloop.counter0 }}"
+                  {% if forloop.counter0 in selected_ships %}checked{% endif %} class="select-item">
+                <label>{{ forloop.counter }}. {{ item|get_item:clave }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </form>
+      {% else %}
+        <p>No se encontraron datos para el puerto {{ puerto }}.</p>
+      {% endif %}
+    </div>
+
+    <script>
+      
+      function checkUpdates() {
+        var puerto = "{{ puerto }}";
+        fetch("{% url 'check_updates' %}?puerto=" + encodeURIComponent(puerto))
+          .then(response => response.json())
+          .then(data => {
+            if (data.updates && data.updates.length > 0) {
+              var message = "¡Se actualizaron las siguientes naves: " +
+                data.updates.map(function(ship){ return ship["{{ clave }}"]; }).join(", ") +
+                "!";
+              var notifDiv = document.getElementById("update-notification");
+              notifDiv.innerHTML = message;
+              notifDiv.style.display = "block";
+            }
+          })
+          .catch(error => console.error('Error al consultar actualizaciones:', error));
+      }
+      setInterval(checkUpdates, 60000);
+      checkUpdates();
+
+
+      document.querySelectorAll('.view-details').forEach(function(button) {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          var idx = this.getAttribute('data-idx');
+          var puerto = this.getAttribute('data-puerto');
+  
+          var detailsSection = document.getElementById('ship-details-' + idx);
+          var viewDetailsButton = this; 
+          var removeButton = this.closest('.ship-item').querySelector('.remove-ship');  
+          var closeButton = detailsSection.querySelector('.close-details');
+  
+          if (detailsSection.style.display === 'none' || detailsSection.style.maxHeight === '0px') {
+            viewDetailsButton.style.display = 'none';
+            removeButton.style.display = 'none';
+
+            fetch(`/detalle/${idx}/?puerto=${puerto}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data.elemento) {
+                    var detailsList = document.getElementById('details-list-' + idx);
+                    detailsList.innerHTML = ''; 
+                    for (var key in data.elemento) {
+                      var li = document.createElement('li');
+                      li.innerHTML = '<strong>' + key + ':</strong> ' + data.elemento[key];
+                      detailsList.appendChild(li);
+                    }
+
+                    detailsSection.style.display = 'block'; 
+                    setTimeout(() => {
+                      detailsSection.style.maxHeight = detailsSection.scrollHeight + "px";
+                    }, 10);
+                  } else {
+                    alert('No se encontró la nave');
+                  }
+              })
+              .catch(error => {
+                  console.error('Error al cargar los detalles:', error);
+                  alert('Hubo un error al cargar los detalles. Intenta nuevamente.');
+              });
+          } else {
+            viewDetailsButton.style.display = 'inline-block'; 
+            removeButton.style.display = 'inline-block';
+
+            detailsSection.style.maxHeight = '0px';
+            setTimeout(() => { 
+                detailsSection.style.display = 'none'; 
+            }, 500); 
+          }
+  
+          closeButton.addEventListener('click', function() {
+            detailsSection.style.maxHeight = '0px';
+            setTimeout(() => {
+                detailsSection.style.display = 'none';
+            }, 500);
+
+            viewDetailsButton.style.display = 'inline-block';
+            removeButton.style.display = 'inline-block';
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
