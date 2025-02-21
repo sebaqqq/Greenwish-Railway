@@ -16,6 +16,9 @@ import time
 import re
 from datetime import datetime
 import locale
+import urllib3
+import json
+import sys
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -78,86 +81,184 @@ def datos_valparaiso(url):
             
     return [nave for nave in datos if nave["Nombre Nave"] != "N/A"]
 
+# def datos_san_antonio(url):
+#     try:
+#         options = Options()
+#         options.headless = False  
+        
+#         chrome_path = ChromeDriverManager().install()
+#         driver = webdriver.Chrome(service=Service(chrome_path), options=options)
+        
+#         driver.get(url)
+
+#         time.sleep(5) 
+        
+#         html_texto = driver.page_source
+        
+#         soup = BeautifulSoup(html_texto, 'html.parser')
+
+#         fechas = soup.select('.planificacion > tbody > tr > .titulo')
+#         fechas_texto = [fecha.get_text(strip=True).replace('\n', '') for fecha in fechas]
+        
+#         if fechas_texto:
+#             print(f"Fechas encontradas: {fechas_texto}")
+#         else:
+#             print("No se encontraron fechas con el selector CSS especificado.")
+        
+#         celdas = soup.select('.planificacion > tbody > tr > td > table')
+                
+#         if not celdas:
+#             print("No se encontraron celdas con el selector CSS especificado.")
+#             driver.quit()  
+#             return []
+    
+#         datos = []
+#         fecha_index = 0 
+#         celdas_por_fecha = 7 
+
+#         for i, celda in enumerate(celdas):
+#             texto = celda.get_text(strip=True).replace('\n', '')
+
+#             if texto:
+#                 hora = None
+#                 metros = None
+#                 nave = None
+                
+#                 fecha = fechas_texto[fecha_index]
+                
+#                 hora_match = re.search(r'(\d{2}:\d{2})', texto)
+#                 if hora_match:
+#                     hora = hora_match.group(0)
+                
+#                 metros_match = re.search(r'(\d+\.?\d*)m', texto)
+#                 if metros_match:
+#                     metros = metros_match.group(0)
+
+#                 nave_match = re.search(r'([A-Z\s]+)', texto)
+#                 if nave_match:
+#                     nave = nave_match.group(0).strip()
+
+#                 if hora and metros and nave is None:
+#                     nave = texto.replace(hora, '').replace(metros, '').strip()
+
+#                 datos.append({
+#                     'fecha': fecha, 
+#                     'hora': hora if hora else None,  
+#                     'metros': metros if metros else None,  
+#                     'nave': nave if nave else None  
+#                 })
+                
+#                 if (i + 1) % celdas_por_fecha == 0 and fecha_index + 1 < len(fechas_texto):
+#                     fecha_index += 1  
+
+#         driver.quit()  
+#         return datos
+
+#     except Exception as e:
+#         print(f"Ocurrió un error: {e}")
+#         return []
+
+
+def limpiar_json(datos):
+    naves_menor_fecha = {}
+
+    for d in datos:
+        if not d['nave']:  
+            continue
+
+        if d['metros']:
+            d['metros'] = re.sub(r'^0+', '', d['metros']) 
+
+        fecha_texto = d['fecha']
+        if fecha_texto:
+            try:
+                dia = int(fecha_texto.split()[0])  
+                
+                fecha_comparable = datetime(2024, 2, dia) 
+
+                if d['nave'] not in naves_menor_fecha or fecha_comparable < naves_menor_fecha[d['nave']]['fecha_comparable']:
+                    naves_menor_fecha[d['nave']] = {**d, 'fecha_comparable': fecha_comparable}
+
+            except ValueError:
+                continue 
+
+    datos_filtrados = [{k: v for k, v in nave.items() if k != 'fecha_comparable'} for nave in naves_menor_fecha.values()]
+
+    return datos_filtrados
+
+
 def datos_san_antonio(url):
     try:
-        options = Options()
-        options.headless = False  
-        
-        chrome_path = ChromeDriverManager().install()
-        driver = webdriver.Chrome(service=Service(chrome_path), options=options)
-        
-        # os.environ["WDM_CACHE"] = "/tmp"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers, verify=False)
+        response.raise_for_status()
 
-        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        
-        driver.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-        time.sleep(5) 
-        
-        html_texto = driver.page_source
-        
-        soup = BeautifulSoup(html_texto, 'html.parser')
-
-        fechas = soup.select('.planificacion > tbody > tr > .titulo')
+        # Extraer fechas
+        fechas = soup.find_all('td', class_=re.compile(r'titulo', re.I))  
         fechas_texto = [fecha.get_text(strip=True).replace('\n', '') for fecha in fechas]
-        
-        if fechas_texto:
-            print(f"Fechas encontradas: {fechas_texto}")
-        else:
-            print("No se encontraron fechas con el selector CSS especificado.")
-        
-        celdas = soup.select('.planificacion > tbody > tr > td > table')
-                
-        if not celdas:
-            print("No se encontraron celdas con el selector CSS especificado.")
-            driver.quit()  
+
+        if not fechas_texto:
+            print("⚠️ No se encontraron fechas con el selector CSS especificado. Revisa el HTML.")
             return []
-    
+
+        print(f"Fechas encontradas: {fechas_texto}")
+
+        contenedor_planificacion = soup.find('table', class_=re.compile(r'planificacion', re.I))
+
+        if not contenedor_planificacion:
+            print("⚠️ No se encontró el contenedor principal de planificación.")
+            return []
+
+        tablas = contenedor_planificacion.select('tr > td > table')
+
+        if not tablas:
+            print("⚠️ No se encontraron tablas dentro de '.planificacion > tbody > tr > td > table'. Revisa el HTML.")
+            return []
+
         datos = []
-        fecha_index = 0 
+        fecha_index = 0
         celdas_por_fecha = 7 
 
-        for i, celda in enumerate(celdas):
-            texto = celda.get_text(strip=True).replace('\n', '')
+        for i, tabla in enumerate(tablas):
+            filas = tabla.find_all('tr')
 
-            if texto:
-                hora = None
-                metros = None
-                nave = None
-                
-                fecha = fechas_texto[fecha_index]
-                
-                hora_match = re.search(r'(\d{2}:\d{2})', texto)
-                if hora_match:
-                    hora = hora_match.group(0)
-                
-                metros_match = re.search(r'(\d+\.?\d*)m', texto)
-                if metros_match:
-                    metros = metros_match.group(0)
+            for fila in filas:
+                celdas = fila.find_all('td')
+                for celda in celdas:
+                    texto = celda.get_text(strip=True).replace('\n', '')
 
-                nave_match = re.search(r'([A-Z\s]+)', texto)
-                if nave_match:
-                    nave = nave_match.group(0).strip()
+                    if texto:
+                        hora = re.search(r'(\d{2}:\d{2})', texto)
+                        metros = re.search(r'(\d+\.?\d*)m', texto)
 
-                if hora and metros and nave is None:
-                    nave = texto.replace(hora, '').replace(metros, '').strip()
+                        nave = re.sub(r'(\d{2}:\d{2})|(\d+\.?\d*m)', '', texto).strip().upper()
 
-                datos.append({
-                    'fecha': fecha, 
-                    'hora': hora if hora else None,  
-                    'metros': metros if metros else None,  
-                    'nave': nave if nave else None  
-                })
-                
-                if (i + 1) % celdas_por_fecha == 0 and fecha_index + 1 < len(fechas_texto):
-                    fecha_index += 1  
+                        if hora or metros or nave:
+                            datos.append({
+                                'fecha': fechas_texto[fecha_index] if fecha_index < len(fechas_texto) else None,
+                                'hora': hora.group(0) if hora else None,
+                                'metros': metros.group(0) if metros else None,
+                                'nave': nave if nave else None
+                            })
 
-        driver.quit()  
-        return datos
+            if (i + 1) % celdas_por_fecha == 0 and fecha_index + 1 < len(fechas_texto):
+                fecha_index += 1
 
+        datos_limpios = limpiar_json(datos)
+
+        print(json.dumps(datos_limpios, indent=4, ensure_ascii=False))
+        return datos_limpios
+
+    except requests.exceptions.RequestException as e:
+        print(f"🚨 Error en la solicitud HTTP: {e}")
     except Exception as e:
-        print(f"Ocurrió un error: {e}")
-        return []
+        print(f"❌ Ocurrió un error: {e}")
+
+    return []
 
 
 def cargar_datos(opcion):
