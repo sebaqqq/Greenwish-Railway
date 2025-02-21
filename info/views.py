@@ -22,6 +22,10 @@ import sys
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+sys.stdout.reconfigure(encoding='utf-8')
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 try:
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 except locale.Error:
@@ -81,84 +85,6 @@ def datos_valparaiso(url):
             
     return [nave for nave in datos if nave["Nombre Nave"] != "N/A"]
 
-# def datos_san_antonio(url):
-#     try:
-#         options = Options()
-#         options.headless = False  
-        
-#         chrome_path = ChromeDriverManager().install()
-#         driver = webdriver.Chrome(service=Service(chrome_path), options=options)
-        
-#         driver.get(url)
-
-#         time.sleep(5) 
-        
-#         html_texto = driver.page_source
-        
-#         soup = BeautifulSoup(html_texto, 'html.parser')
-
-#         fechas = soup.select('.planificacion > tbody > tr > .titulo')
-#         fechas_texto = [fecha.get_text(strip=True).replace('\n', '') for fecha in fechas]
-        
-#         if fechas_texto:
-#             print(f"Fechas encontradas: {fechas_texto}")
-#         else:
-#             print("No se encontraron fechas con el selector CSS especificado.")
-        
-#         celdas = soup.select('.planificacion > tbody > tr > td > table')
-                
-#         if not celdas:
-#             print("No se encontraron celdas con el selector CSS especificado.")
-#             driver.quit()  
-#             return []
-    
-#         datos = []
-#         fecha_index = 0 
-#         celdas_por_fecha = 7 
-
-#         for i, celda in enumerate(celdas):
-#             texto = celda.get_text(strip=True).replace('\n', '')
-
-#             if texto:
-#                 hora = None
-#                 metros = None
-#                 nave = None
-                
-#                 fecha = fechas_texto[fecha_index]
-                
-#                 hora_match = re.search(r'(\d{2}:\d{2})', texto)
-#                 if hora_match:
-#                     hora = hora_match.group(0)
-                
-#                 metros_match = re.search(r'(\d+\.?\d*)m', texto)
-#                 if metros_match:
-#                     metros = metros_match.group(0)
-
-#                 nave_match = re.search(r'([A-Z\s]+)', texto)
-#                 if nave_match:
-#                     nave = nave_match.group(0).strip()
-
-#                 if hora and metros and nave is None:
-#                     nave = texto.replace(hora, '').replace(metros, '').strip()
-
-#                 datos.append({
-#                     'fecha': fecha, 
-#                     'hora': hora if hora else None,  
-#                     'metros': metros if metros else None,  
-#                     'nave': nave if nave else None  
-#                 })
-                
-#                 if (i + 1) % celdas_por_fecha == 0 and fecha_index + 1 < len(fechas_texto):
-#                     fecha_index += 1  
-
-#         driver.quit()  
-#         return datos
-
-#     except Exception as e:
-#         print(f"Ocurrió un error: {e}")
-#         return []
-
-
 def limpiar_json(datos):
     naves_menor_fecha = {}
 
@@ -185,7 +111,6 @@ def limpiar_json(datos):
     datos_filtrados = [{k: v for k, v in nave.items() if k != 'fecha_comparable'} for nave in naves_menor_fecha.values()]
 
     return datos_filtrados
-
 
 def datos_san_antonio(url):
     try:
@@ -260,7 +185,6 @@ def datos_san_antonio(url):
 
     return []
 
-
 def cargar_datos(opcion):
     if opcion == "Valparaíso":
         url = "https://pln.puertovalparaiso.cl/pln/"
@@ -315,7 +239,6 @@ def index(request):
         'selected_ships': selected_ships,
     }
     return render(request, 'info/index.html', context)
-
 
 def detalle(request, index):
     puerto = request.GET.get('puerto', 'Valparaíso')
