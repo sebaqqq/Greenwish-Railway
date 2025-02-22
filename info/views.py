@@ -108,27 +108,106 @@ def limpiar_json(datos):
 
     return datos_filtrados
 
+# def datos_san_antonio(url):
+#     try:
+#         # headers = {
+#         #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+#         # }
+#         headers = {
+#             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+#             "Accept-Language": "es-ES,es;q=0.9",
+#             "Accept-Encoding": "gzip, deflate, br",
+#             "Referer": "https://gessup.puertosanantonio.com/Planificaciones/general.aspx",
+#             "DNT": "1",
+#             "Connection": "keep-alive",
+#             "Upgrade-Insecure-Requests": "1"
+            
+#         }
+
+#         response = requests.get(url, headers=headers, verify=False)
+#         response.raise_for_status()
+
+#         soup = BeautifulSoup(response.text, 'html.parser')
+
+#         fechas = soup.find_all('td', class_=re.compile(r'titulo', re.I))  
+#         fechas_texto = [fecha.get_text(strip=True).replace('\n', '') for fecha in fechas]
+
+#         if not fechas_texto:
+#             print("No se encontraron fechas con el selector CSS especificado. Revisa el HTML.")
+#             return []
+
+#         print(f"Fechas encontradas: {fechas_texto}")
+
+#         contenedor_planificacion = soup.find('table', class_=re.compile(r'planificacion', re.I))
+
+#         if not contenedor_planificacion:
+#             print("No se encontró el contenedor principal de planificación.")
+#             return []
+
+#         tablas = contenedor_planificacion.select('tr > td > table')
+
+#         if not tablas:
+#             print("No se encontraron tablas dentro de '.planificacion > tbody > tr > td > table'. Revisa el HTML.")
+#             return []
+
+#         datos = []
+#         fecha_index = 0
+#         celdas_por_fecha = 7 
+
+#         for i, tabla in enumerate(tablas):
+#             filas = tabla.find_all('tr')
+
+#             for fila in filas:
+#                 celdas = fila.find_all('td')
+#                 for celda in celdas:
+#                     texto = celda.get_text(strip=True).replace('\n', '')
+
+#                     if texto:
+#                         hora = re.search(r'(\d{2}:\d{2})', texto)
+#                         metros = re.search(r'(\d+\.?\d*)m', texto)
+
+#                         nave = re.sub(r'(\d{2}:\d{2})|(\d+\.?\d*m)', '', texto).strip().upper()
+
+#                         if hora or metros or nave:
+#                             datos.append({
+#                                 'fecha': fechas_texto[fecha_index] if fecha_index < len(fechas_texto) else None,
+#                                 'hora': hora.group(0) if hora else None,
+#                                 'metros': metros.group(0) if metros else None,
+#                                 'nave': nave if nave else None
+#                             })
+
+#             if (i + 1) % celdas_por_fecha == 0 and fecha_index + 1 < len(fechas_texto):
+#                 fecha_index += 1
+
+#         datos_limpios = limpiar_json(datos)
+
+#         print(json.dumps(datos_limpios, indent=4, ensure_ascii=False))
+#         return datos_limpios
+
+#     except requests.exceptions.RequestException as e:
+#         print(f"Error en la solicitud HTTP: {e}")
+#     except Exception as e:
+#         print(f"Ocurrió un error: {e}")
+
+#     return []
+
 def datos_san_antonio(url):
     try:
-        # headers = {
-        #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        # }
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept-Language": "es-ES,es;q=0.9",
             "Accept-Encoding": "gzip, deflate, br",
             "Referer": "https://gessup.puertosanantonio.com/Planificaciones/general.aspx",
-            "DNT": "1",  # Do Not Track
+            "DNT": "1",
             "Connection": "keep-alive",
             "Upgrade-Insecure-Requests": "1"
         }
 
-        response = requests.get(url, headers=headers, verify=False)
+        response = requests.get(url, headers=headers, verify=False, timeout=10)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
-
-        fechas = soup.find_all('td', class_=re.compile(r'titulo', re.I))  
+        fechas = soup.find_all('td', class_=re.compile(r'titulo', re.I))
         fechas_texto = [fecha.get_text(strip=True).replace('\n', '') for fecha in fechas]
 
         if not fechas_texto:
@@ -138,33 +217,28 @@ def datos_san_antonio(url):
         print(f"Fechas encontradas: {fechas_texto}")
 
         contenedor_planificacion = soup.find('table', class_=re.compile(r'planificacion', re.I))
-
         if not contenedor_planificacion:
             print("No se encontró el contenedor principal de planificación.")
             return []
 
         tablas = contenedor_planificacion.select('tr > td > table')
-
         if not tablas:
             print("No se encontraron tablas dentro de '.planificacion > tbody > tr > td > table'. Revisa el HTML.")
             return []
 
         datos = []
         fecha_index = 0
-        celdas_por_fecha = 7 
+        celdas_por_fecha = 7
 
         for i, tabla in enumerate(tablas):
             filas = tabla.find_all('tr')
-
             for fila in filas:
                 celdas = fila.find_all('td')
                 for celda in celdas:
                     texto = celda.get_text(strip=True).replace('\n', '')
-
                     if texto:
                         hora = re.search(r'(\d{2}:\d{2})', texto)
                         metros = re.search(r'(\d+\.?\d*)m', texto)
-
                         nave = re.sub(r'(\d{2}:\d{2})|(\d+\.?\d*m)', '', texto).strip().upper()
 
                         if hora or metros or nave:
@@ -174,21 +248,24 @@ def datos_san_antonio(url):
                                 'metros': metros.group(0) if metros else None,
                                 'nave': nave if nave else None
                             })
-
             if (i + 1) % celdas_por_fecha == 0 and fecha_index + 1 < len(fechas_texto):
                 fecha_index += 1
 
         datos_limpios = limpiar_json(datos)
-
         print(json.dumps(datos_limpios, indent=4, ensure_ascii=False))
         return datos_limpios
 
+    except SystemExit as se:
+        print(f"SystemExit capturado: {se}")
+        # Se retorna una lista vacía en lugar de abortar la ejecución
+        return []
     except requests.exceptions.RequestException as e:
         print(f"Error en la solicitud HTTP: {e}")
+        return []
     except Exception as e:
         print(f"Ocurrió un error: {e}")
+        return []
 
-    return []
 
 def cargar_datos(opcion):
     if opcion == "Valparaíso":
