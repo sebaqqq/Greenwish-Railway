@@ -6,25 +6,21 @@ import urllib3
 import openpyxl
 from openpyxl.utils import get_column_letter
 import xlsxwriter 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
-import time
+# from selenium import webdriver
+# from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.chrome.options import Options
+# from webdriver_manager.chrome import ChromeDriverManager
+# import time
 import re
 from datetime import datetime
 import locale
-import urllib3
 import json
 import sys
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 sys.stdout.reconfigure(encoding='utf-8')
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 try:
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
@@ -114,20 +110,29 @@ def limpiar_json(datos):
 
 def datos_san_antonio(url):
     try:
+        # headers = {
+        #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        # }
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept-Language": "es-ES,es;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Referer": "https://gessup.puertosanantonio.com/Planificaciones/general.aspx",
+            "DNT": "1",  # Do Not Track
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1"
         }
+
         response = requests.get(url, headers=headers, verify=False)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Extraer fechas
         fechas = soup.find_all('td', class_=re.compile(r'titulo', re.I))  
         fechas_texto = [fecha.get_text(strip=True).replace('\n', '') for fecha in fechas]
 
         if not fechas_texto:
-            print("⚠️ No se encontraron fechas con el selector CSS especificado. Revisa el HTML.")
+            print("No se encontraron fechas con el selector CSS especificado. Revisa el HTML.")
             return []
 
         print(f"Fechas encontradas: {fechas_texto}")
@@ -135,13 +140,13 @@ def datos_san_antonio(url):
         contenedor_planificacion = soup.find('table', class_=re.compile(r'planificacion', re.I))
 
         if not contenedor_planificacion:
-            print("⚠️ No se encontró el contenedor principal de planificación.")
+            print("No se encontró el contenedor principal de planificación.")
             return []
 
         tablas = contenedor_planificacion.select('tr > td > table')
 
         if not tablas:
-            print("⚠️ No se encontraron tablas dentro de '.planificacion > tbody > tr > td > table'. Revisa el HTML.")
+            print("No se encontraron tablas dentro de '.planificacion > tbody > tr > td > table'. Revisa el HTML.")
             return []
 
         datos = []
@@ -179,9 +184,9 @@ def datos_san_antonio(url):
         return datos_limpios
 
     except requests.exceptions.RequestException as e:
-        print(f"🚨 Error en la solicitud HTTP: {e}")
+        print(f"Error en la solicitud HTTP: {e}")
     except Exception as e:
-        print(f"❌ Ocurrió un error: {e}")
+        print(f"Ocurrió un error: {e}")
 
     return []
 
