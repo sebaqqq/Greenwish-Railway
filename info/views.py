@@ -26,7 +26,8 @@ def datos_valparaiso(url):
     soup = BeautifulSoup(html_texto, 'html.parser')
     
     sitios = []
-    for i in range(7, 15): 
+    #for i in range(7, 15): 
+    for i in range(7, 10): 
         sitio_div = soup.find("div", class_=f"pln-titulo{i}")
         if sitio_div:
             sitio_nombre = sitio_div.find("span").text.strip() 
@@ -49,7 +50,8 @@ def datos_valparaiso(url):
         fecha.append(fecha_result)
 
     for fila_idx in range(7): 
-        for columna_idx in range(0, 9):  
+        #for columna_idx in range(0, 9):
+        for columna_idx in range(0, 4):  
             cellinfo = soup.find("div", class_=f"cellinfo-{fila_idx}-{columna_idx}")
             
             nombre_nave = ""
@@ -168,7 +170,6 @@ def datos_san_antonio(url):
 
     except SystemExit as se:
         print(f"SystemExit capturado: {se}")
-        # Se retorna una lista vacía en lugar de abortar la ejecución
         return []
     except requests.exceptions.RequestException as e:
         print(f"Error en la solicitud HTTP: {e}")
