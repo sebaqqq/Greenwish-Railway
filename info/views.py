@@ -116,7 +116,8 @@ def datos_san_antonio(url):
             "Upgrade-Insecure-Requests": "1"
         }
 
-        response = requests.get(url, headers=headers, verify=False, timeout=30)
+        #response = requests.get(url, headers=headers, verify=False, timeout=30)
+        response = requests.get(url, headers=headers, verify=False, timeout=16)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
