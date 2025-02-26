@@ -117,7 +117,7 @@ def datos_san_antonio(url):
         }
 
         #response = requests.get(url, headers=headers, verify=False, timeout=30)
-        response = requests.get(url, headers=headers, verify=False, timeout=16)
+        response = requests.get(url, headers=headers, verify=False, timeout=14)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -148,7 +148,8 @@ def datos_san_antonio(url):
             filas = tabla.find_all('tr')
             for fila in filas:
                 celdas = fila.find_all('td')
-                for celda in celdas:
+                # for celda in celdas:
+                for j, celda in enumerate(celdas[:5]):
                     texto = celda.get_text(strip=True).replace('\n', '')
                     if texto:
                         hora = re.search(r'(\d{2}:\d{2})', texto)
