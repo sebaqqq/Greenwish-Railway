@@ -180,117 +180,6 @@ def datos_san_antonio(url):
         print(f"Ocurrió un error: {e}")
         return []
 
-# def scrape_data(url):
-    # try:
-    #     response = requests.get(url, verify=False)
-    #     response.raise_for_status()
-    # except requests.exceptions.RequestException as e:
-    #     print(f"Error al acceder a la página: {e}")
-    #     return None
-    
-    html_texto = requests.get(url, verify=False).text
-    soup = BeautifulSoup(html_texto, 'html.parser')
-
-    rows = soup.select('tbody tr')
-
-    extracted_data = []
-    current_nave = None 
-
-    for row in rows:
-        divs = row.select('.fila-estrecha > div')
-        text_content = " ".join([div.get_text(" ", strip=True) for div in divs])
-
-        nave_match = re.findall(r'\b[A-Z\s]+\b', text_content)
-        if nave_match:
-            current_nave = nave_match[0].strip()  
-
-        fecha, hora, ps = "No disponible", "No disponible", "No disponible"
-        fecha_hora_match = re.findall(r'(\d{2}/\d{2}/\d{2}) (\d{2}:\d{2})', text_content)
-        if fecha_hora_match:
-            fecha, hora = fecha_hora_match[0] 
-        
-        ps_match = re.search(r'PS:(\d{2}/\d{2}/\d{2} \d{2}:\d{2})', text_content)
-        if ps_match:
-            ps = ps_match.group(1)
-
-        if current_nave:
-            extracted_data.append({
-                "Nave": current_nave,
-                "Fecha": fecha,
-                "Hora": hora,
-                "PS": ps
-            })
-
-    return extracted_data
-
-def scrape_data(url):
-    html_texto = requests.get(url, verify=False).text
-    soup = BeautifulSoup(html_texto, 'html.parser')
-    
-    rows = soup.select('tbody tr')
-
-    extracted_data = []
-    current_nave = None
-
-    for row in rows:
-        divs = row.select('.fila-estrecha > div')
-        text_content = " ".join([div.get_text(" ", strip=True) for div in divs])
-
-        nave_match = re.findall(r'\b[A-Z\s]+\b', text_content)
-        if nave_match:
-            current_nave = nave_match[0].strip()
-
-        fecha, hora, ps = "No disponible", "No disponible", "No disponible"
-        
-        fecha_hora_match = re.findall(r'(\d{2}/\d{2}/\d{2}) (\d{2}:\d{2})', text_content)
-        if fecha_hora_match:
-            fecha, hora = fecha_hora_match[0]
-
-        ps_match = re.search(r'PS:(\d{2}/\d{2}/\d{2} \d{2}:\d{2})', text_content)
-        if ps_match:
-            ps = ps_match.group(1)
-
-        if current_nave:
-            extracted_data.append({
-                "Nave": current_nave,
-                "Fecha": fecha,
-                "Hora": hora,
-                "PS": ps
-            })
-
-    return extracted_data
-
-def datos_san_antonio_anunciadas(url):
-    try:
-        html_texto = requests.get(url, verify=False).text
-        soup = BeautifulSoup(html_texto, 'html.parser')
-
-        encabezados = soup.find('tr', class_='GridViewHeader').find_all('th')
-        encabezado_texto = [encabezado.text.strip() for encabezado in encabezados]
-
-        filas = soup.find_all('tr', class_=['GridView', 'GridViewAlternativa'])
-
-        datos = []
-
-        for fila in filas:
-            columnas = fila.find_all('td')
-            if len(columnas) >= len(encabezado_texto):
-                fila_datos = {encabezado_texto[i]: columnas[i].text.strip() for i in range(len(encabezado_texto))}
-                eta = fila_datos.get("E.T.A.", "").strip()
-                nave = fila_datos.get("Nave", "").strip()
-
-                if eta and nave:
-                    datos.append({
-                        "E.T.A.": eta,
-                        "Nave": nave
-                    })
-
-        return datos
-
-    except Exception as e:
-        print(f"Error al procesar los datos de San Antonio: {e}")
-        return []
-
 def cargar_datos(opcion):
     if opcion == "Valparaíso":
         url = "https://pln.puertovalparaiso.cl/pln/"
@@ -379,6 +268,118 @@ def parse_fecha(fecha_str, origen="valparaiso"):
         return dt
     except Exception:
         return None
+    
+def scrape_data(url):
+    html_texto = requests.get(url, verify=False).text
+    soup = BeautifulSoup(html_texto, 'html.parser')
+    
+    rows = soup.select('tbody tr')
+
+    extracted_data = []
+    current_nave = None
+
+    for row in rows:
+        divs = row.select('.fila-estrecha > div')
+        text_content = " ".join([div.get_text(" ", strip=True) for div in divs])
+
+        nave_match = re.findall(r'\b[A-Z\s]+\b', text_content)
+        if nave_match:
+            current_nave = nave_match[0].strip()
+
+        fecha, hora, ps = "No disponible", "No disponible", "No disponible"
+        
+        fecha_hora_match = re.findall(r'(\d{2}/\d{2}/\d{2}) (\d{2}:\d{2})', text_content)
+        if fecha_hora_match:
+            fecha, hora = fecha_hora_match[0]
+
+        ps_match = re.search(r'PS:(\d{2}/\d{2}/\d{2} \d{2}:\d{2})', text_content)
+        if ps_match:
+            ps = ps_match.group(1)
+
+        if current_nave:
+            extracted_data.append({
+                "Nave": current_nave,
+                "Fecha": fecha,
+                "Hora": hora,
+                "PS": ps
+            })
+
+    return extracted_data
+
+# def datos_san_antonio_anunciadas(url):
+#     try:
+#         html_texto = requests.get(url, verify=False).text
+#         soup = BeautifulSoup(html_texto, 'html.parser')
+
+#         encabezados = soup.find('tr', class_='GridViewHeader').find_all('th')
+#         encabezado_texto = [encabezado.text.strip() for encabezado in encabezados]
+
+#         filas = soup.find_all('tr', class_=['GridView', 'GridViewAlternativa'])
+
+#         datos = []
+
+#         for fila in filas:
+#             columnas = fila.find_all('td')
+#             if len(columnas) >= len(encabezado_texto):
+#                 fila_datos = {encabezado_texto[i]: columnas[i].text.strip() for i in range(len(encabezado_texto))}
+#                 eta = fila_datos.get("E.T.A.", "").strip()
+#                 nave = fila_datos.get("Nave", "").strip()
+
+#                 if eta and nave:
+#                     datos.append({
+#                         "E.T.A.": eta,
+#                         "Nave": nave
+#                     })
+
+#         return datos
+
+#     except Exception as e:
+#         print(f"Error al procesar los datos de San Antonio: {e}")
+#         return []
+
+
+def datos_san_antonio_anunciadas(url):
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept-Language": "es-ES,es;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Referer": "https://gessup.puertosanantonio.com/Planificaciones/general.aspx",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1"
+        }
+
+        # Aquí se pasan los headers a la solicitud GET
+        html_texto = requests.get(url, headers=headers, verify=False).text
+        soup = BeautifulSoup(html_texto, 'html.parser')
+
+        encabezados = soup.find('tr', class_='GridViewHeader').find_all('th')
+        encabezado_texto = [encabezado.text.strip() for encabezado in encabezados]
+
+        filas = soup.find_all('tr', class_=['GridView', 'GridViewAlternativa'])
+
+        datos = []
+
+        for fila in filas:
+            columnas = fila.find_all('td')
+            if len(columnas) >= len(encabezado_texto):
+                fila_datos = {encabezado_texto[i]: columnas[i].text.strip() for i in range(len(encabezado_texto))}
+                eta = fila_datos.get("E.T.A.", "").strip()
+                nave = fila_datos.get("Nave", "").strip()
+
+                if eta and nave:
+                    datos.append({
+                        "E.T.A.": eta,
+                        "Nave": nave
+                    })
+
+        return datos
+
+    except Exception as e:
+        print(f"Error al procesar los datos de San Antonio: {e}")
+        return []
+
 
 def descargar_excel(request):
     print("Entrando en la vista descargar_excel...")
