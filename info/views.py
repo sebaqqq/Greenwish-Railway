@@ -181,14 +181,15 @@ def datos_san_antonio(url):
         return []
 
 def scrape_data(url):
-    try:
-        response = requests.get(url, verify=False)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        print(f"Error al acceder a la página: {e}")
-        return None
-
-    soup = BeautifulSoup(response.text, 'html.parser')
+    # try:
+    #     response = requests.get(url, verify=False)
+    #     response.raise_for_status()
+    # except requests.exceptions.RequestException as e:
+    #     print(f"Error al acceder a la página: {e}")
+    #     return None
+    
+    html_texto = requests.get(url, verify=False).text
+    soup = BeautifulSoup(html_texto, 'html.parser')
 
     rows = soup.select('tbody tr')
 
