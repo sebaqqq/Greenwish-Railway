@@ -1,1 +1,1 @@
-web: python manage.py collectstatic && gunicorn --timeout 120 puertos.wsgi
+web: python manage.py collectstatic && gunicorn --timeout 160 puertos.wsgi
