@@ -117,7 +117,7 @@ def datos_san_antonio(url):
         }
 
         #response = requests.get(url, headers=headers, verify=False, timeout=30)
-        response = requests.get(url, headers=headers, verify=False, timeout=10)
+        response = requests.get(url, headers=headers, verify=False, timeout=15)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
