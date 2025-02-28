@@ -306,40 +306,6 @@ def scrape_data(url):
 
     return extracted_data
 
-# def datos_san_antonio_anunciadas(url):
-#     try:
-#         html_texto = requests.get(url, verify=False).text
-#         soup = BeautifulSoup(html_texto, 'html.parser')
-
-#         encabezados = soup.find('tr', class_='GridViewHeader').find_all('th')
-#         encabezado_texto = [encabezado.text.strip() for encabezado in encabezados]
-
-#         filas = soup.find_all('tr', class_=['GridView', 'GridViewAlternativa'])
-
-#         datos = []
-
-#         for fila in filas:
-#             columnas = fila.find_all('td')
-#             if len(columnas) >= len(encabezado_texto):
-#                 fila_datos = {encabezado_texto[i]: columnas[i].text.strip() for i in range(len(encabezado_texto))}
-#                 eta = fila_datos.get("E.T.A.", "").strip()
-#                 nave = fila_datos.get("Nave", "").strip()
-
-#                 if eta and nave:
-#                     datos.append({
-#                         "E.T.A.": eta,
-#                         "Nave": nave
-#                     })
-
-#         return datos
-
-#     except Exception as e:
-#         print(f"Error al procesar los datos de San Antonio: {e}")
-#         return []
-
-
-import requests
-from bs4 import BeautifulSoup
 
 def datos_san_antonio_anunciadas(url):
     try:
