@@ -338,6 +338,9 @@ def scrape_data(url):
 #         return []
 
 
+import requests
+from bs4 import BeautifulSoup
+
 def datos_san_antonio_anunciadas(url):
     try:
         headers = {
@@ -350,24 +353,31 @@ def datos_san_antonio_anunciadas(url):
             "Upgrade-Insecure-Requests": "1"
         }
 
-        # Aquí se pasan los headers a la solicitud GET
-        html_texto = requests.get(url, headers=headers, verify=False).text
-        soup = BeautifulSoup(html_texto, 'html.parser')
+        # Realizamos una única solicitud para obtener el HTML
+        response = requests.get(url, headers=headers, verify=False, timeout=16)
+        response.raise_for_status()  # Verificamos si la respuesta es exitosa
 
+        # Analizamos el contenido de la página
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Extraemos los encabezados de la tabla
         encabezados = soup.find('tr', class_='GridViewHeader').find_all('th')
         encabezado_texto = [encabezado.text.strip() for encabezado in encabezados]
 
+        # Extraemos las filas de datos
         filas = soup.find_all('tr', class_=['GridView', 'GridViewAlternativa'])
 
         datos = []
 
+        # Procesamos cada fila de la tabla
         for fila in filas:
             columnas = fila.find_all('td')
-            if len(columnas) >= len(encabezado_texto):
+            if len(columnas) >= len(encabezado_texto):  # Verificamos que la fila tenga suficientes columnas
                 fila_datos = {encabezado_texto[i]: columnas[i].text.strip() for i in range(len(encabezado_texto))}
                 eta = fila_datos.get("E.T.A.", "").strip()
                 nave = fila_datos.get("Nave", "").strip()
 
+                # Solo agregamos a los datos si "E.T.A." y "Nave" no están vacíos
                 if eta and nave:
                     datos.append({
                         "E.T.A.": eta,
@@ -376,9 +386,12 @@ def datos_san_antonio_anunciadas(url):
 
         return datos
 
+    except requests.exceptions.RequestException as e:
+        print(f"Error al realizar la solicitud HTTP: {e}")
     except Exception as e:
         print(f"Error al procesar los datos de San Antonio: {e}")
-        return []
+    
+    return []  # Retornamos una lista vacía si ocurre un error
 
 
 def descargar_excel(request):
