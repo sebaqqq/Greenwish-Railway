@@ -180,7 +180,7 @@ def datos_san_antonio(url):
         print(f"Ocurrió un error: {e}")
         return []
 
-def scrape_data(url):
+# def scrape_data(url):
     # try:
     #     response = requests.get(url, verify=False)
     #     response.raise_for_status()
@@ -209,6 +209,43 @@ def scrape_data(url):
         if fecha_hora_match:
             fecha, hora = fecha_hora_match[0] 
         
+        ps_match = re.search(r'PS:(\d{2}/\d{2}/\d{2} \d{2}:\d{2})', text_content)
+        if ps_match:
+            ps = ps_match.group(1)
+
+        if current_nave:
+            extracted_data.append({
+                "Nave": current_nave,
+                "Fecha": fecha,
+                "Hora": hora,
+                "PS": ps
+            })
+
+    return extracted_data
+
+def scrape_data(url):
+    html_texto = requests.get(url, verify=False).text
+    soup = BeautifulSoup(html_texto, 'html.parser')
+    
+    rows = soup.select('tbody tr')
+
+    extracted_data = []
+    current_nave = None
+
+    for row in rows:
+        divs = row.select('.fila-estrecha > div')
+        text_content = " ".join([div.get_text(" ", strip=True) for div in divs])
+
+        nave_match = re.findall(r'\b[A-Z\s]+\b', text_content)
+        if nave_match:
+            current_nave = nave_match[0].strip()
+
+        fecha, hora, ps = "No disponible", "No disponible", "No disponible"
+        
+        fecha_hora_match = re.findall(r'(\d{2}/\d{2}/\d{2}) (\d{2}:\d{2})', text_content)
+        if fecha_hora_match:
+            fecha, hora = fecha_hora_match[0]
+
         ps_match = re.search(r'PS:(\d{2}/\d{2}/\d{2} \d{2}:\d{2})', text_content)
         if ps_match:
             ps = ps_match.group(1)
@@ -454,7 +491,6 @@ def descargar_excel(request):
     else:
         print("Solicitud no válida")
         return HttpResponse("Solicitud no válida", status=400)
-
 
 def seleccionar_naves(request):
     if request.method == "POST":
