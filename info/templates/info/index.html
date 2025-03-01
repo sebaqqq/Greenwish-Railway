@@ -73,10 +73,14 @@
         <form method="POST" action="{% url 'descargar_excel' %}">
           {% csrf_token %}
           <input type="hidden" name="puerto" value="{{ puerto }}">
-          <button type="submit" name="descargar_excel" class="btn-seleccionar">Descargar Excel</button>
+          <button type="submit" name="descargar_excel" class="btn-seleccionar">Descargar Excel Naves Seleccionadas</button>
+        </form>
+
+        <form method="POST" action="{% url 'descargar_excel_anunciadas' %}">
+          {% csrf_token %}
+          <button type="submit" name="descargar_excel_anunciadas" class="btn-seleccionar">Descargar Excel Naves Anunciadas</button>
         </form>
     
-
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="puerto" value="{{ puerto }}">
@@ -97,7 +101,6 @@
     </div>
 
     <script>
-      
       function checkUpdates() {
         var puerto = "{{ puerto }}";
         fetch("{% url 'check_updates' %}?puerto=" + encodeURIComponent(puerto))
@@ -116,7 +119,6 @@
       }
       setInterval(checkUpdates, 60000);
       checkUpdates();
-
 
       document.querySelectorAll('.view-details').forEach(function(button) {
         button.addEventListener('click', function(e) {

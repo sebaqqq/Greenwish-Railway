@@ -269,7 +269,7 @@ def parse_fecha(fecha_str, origen="valparaiso"):
     except Exception:
         return None
     
-def scrape_data(url):
+def datos_valparaiso_anunciadas(url):
     html_texto = requests.get(url, verify=False).text
     soup = BeautifulSoup(html_texto, 'html.parser')
     
@@ -319,31 +319,25 @@ def datos_san_antonio_anunciadas(url):
             "Upgrade-Insecure-Requests": "1"
         }
 
-        # Realizamos una única solicitud para obtener el HTML
-        response = requests.get(url, headers=headers, verify=False, timeout=16)
-        response.raise_for_status()  # Verificamos si la respuesta es exitosa
+        response = requests.get(url, headers=headers, verify=False, timeout=15)
+        response.raise_for_status()  
 
-        # Analizamos el contenido de la página
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Extraemos los encabezados de la tabla
         encabezados = soup.find('tr', class_='GridViewHeader').find_all('th')
         encabezado_texto = [encabezado.text.strip() for encabezado in encabezados]
 
-        # Extraemos las filas de datos
         filas = soup.find_all('tr', class_=['GridView', 'GridViewAlternativa'])
 
         datos = []
 
-        # Procesamos cada fila de la tabla
         for fila in filas:
             columnas = fila.find_all('td')
-            if len(columnas) >= len(encabezado_texto):  # Verificamos que la fila tenga suficientes columnas
+            if len(columnas) >= len(encabezado_texto):  
                 fila_datos = {encabezado_texto[i]: columnas[i].text.strip() for i in range(len(encabezado_texto))}
                 eta = fila_datos.get("E.T.A.", "").strip()
                 nave = fila_datos.get("Nave", "").strip()
 
-                # Solo agregamos a los datos si "E.T.A." y "Nave" no están vacíos
                 if eta and nave:
                     datos.append({
                         "E.T.A.": eta,
@@ -357,7 +351,162 @@ def datos_san_antonio_anunciadas(url):
     except Exception as e:
         print(f"Error al procesar los datos de San Antonio: {e}")
     
-    return []  # Retornamos una lista vacía si ocurre un error
+    return []  
+
+
+# def descargar_excel(request):
+#     print("Entrando en la vista descargar_excel...")
+
+#     if 'descargar_excel' in request.POST:
+#         print("Formulario recibido con la opción de descarga.")
+
+#         global_selected_ships = request.session.get('selected_ships', {})
+#         seleccionados_valparaiso = global_selected_ships.get('Valparaíso', [])
+#         seleccionados_san_antonio = global_selected_ships.get('San Antonio', [])
+
+#         if not seleccionados_valparaiso and not seleccionados_san_antonio:
+#             print("No hay naves seleccionadas.")
+#             return HttpResponse("No hay naves seleccionadas.", status=400)
+
+#         datos_seleccionados_valparaiso = []
+#         datos_seleccionados_san_antonio = []
+
+#         datos_valparaiso, clave_valparaiso = cargar_datos("Valparaíso")
+#         for idx in seleccionados_valparaiso:
+#             if idx < len(datos_valparaiso):
+#                 datos_seleccionados_valparaiso.append(datos_valparaiso[idx])
+
+#         datos_san_antonio, clave_san_antonio = cargar_datos("San Antonio")
+#         for idx in seleccionados_san_antonio:
+#             if idx < len(datos_san_antonio):
+#                 datos_seleccionados_san_antonio.append(datos_san_antonio[idx])
+
+#         url_valparaiso_anunciadas = "https://pln.puertovalparaiso.cl/pln/"  
+#         datos_naves_anunciadas_valpo = datos_valparaiso_anunciadas(url_valparaiso_anunciadas)
+
+#         url_san_antonio_anunciadas = "https://gessup.puertosanantonio.com/Planificaciones/general.aspx"  
+#         datos_naves_anunciadas_sa = datos_san_antonio_anunciadas(url_san_antonio_anunciadas)
+
+#         response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+#         response['Content-Disposition'] = 'attachment; filename=naves_seleccionadas.xlsx'
+
+#         workbook = xlsxwriter.Workbook(response)
+#         date_format = workbook.add_format({'num_format': 'dd/mm/yyyy'})
+
+#         # **Hoja 1: Valparaíso**
+#         ws_valparaiso = workbook.add_worksheet("Valparaíso")
+#         encabezados_valparaiso = ["Nombre Nave", "Fecha", "Hora"]
+#         ws_valparaiso.write_row('A1', encabezados_valparaiso)
+
+#         for i, nave in enumerate(datos_seleccionados_valparaiso, start=1):
+#             nombre = nave.get("Nombre Nave", "Pending")
+#             fecha_str = nave.get("Fecha", "Pending")
+#             hora = nave.get("Hora", "Pending")
+
+#             fecha_dt = parse_fecha(fecha_str, origen="valparaiso")
+
+#             ws_valparaiso.write(i, 0, nombre)
+#             if fecha_dt:
+#                 ws_valparaiso.write_datetime(i, 1, fecha_dt, date_format)
+#             else:
+#                 ws_valparaiso.write(i, 1, fecha_str)
+#             ws_valparaiso.write(i, 2, hora)
+
+#         ws_valparaiso.set_tab_color('green')
+
+#         # **Hoja 2: San Antonio**
+#         ws_sanantonio = workbook.add_worksheet("San Antonio")
+#         encabezados_sanantonio = ["Nombre Nave", "Fecha", "Hora"]
+#         ws_sanantonio.write_row('A1', encabezados_sanantonio)
+
+#         for i, nave in enumerate(datos_seleccionados_san_antonio, start=1):
+#             nombre = nave.get("nave", "Pending")
+#             fecha_str = nave.get("fecha", "Pending")
+#             hora = nave.get("hora", "Pending")
+
+#             fecha_dt = parse_fecha(fecha_str, origen="san_antonio")
+
+#             ws_sanantonio.write(i, 0, nombre)
+#             if fecha_dt:
+#                 ws_sanantonio.write_datetime(i, 1, fecha_dt, date_format)
+#             else:
+#                 ws_sanantonio.write(i, 1, fecha_str)
+#             ws_sanantonio.write(i, 2, hora)
+
+#         ws_sanantonio.set_tab_color('blue')
+
+#         # **Hoja 3: Valparaíso-Naves Anunciadas**
+#         ws_naves_anunciadas_valpo = workbook.add_worksheet("Valparaíso-NavesAnunciadas")
+#         encabezados_anunciadas_valpo = ["Nave", "Fecha", "Hora", "PS"]
+#         ws_naves_anunciadas_valpo.write_row('A1', encabezados_anunciadas_valpo)
+
+#         for i, nave in enumerate(datos_naves_anunciadas_valpo, start=1):
+#             ws_naves_anunciadas_valpo.write(i, 0, nave.get("Nave", "Sin información"))
+#             ws_naves_anunciadas_valpo.write(i, 1, nave.get("Fecha", "No disponible"))
+#             ws_naves_anunciadas_valpo.write(i, 2, nave.get("Hora", "No disponible"))
+#             ws_naves_anunciadas_valpo.write(i, 3, nave.get("PS", "No disponible"))
+
+#         ws_naves_anunciadas_valpo.set_tab_color('orange')
+
+#         # **Hoja 4: San Antonio-Naves Anunciadas**
+#         ws_naves_anunciadas_sa = workbook.add_worksheet("SanAntonio-NavesAnunciadas")
+#         encabezados_anunciadas_sa = ["E.T.A.", "Nave"]
+#         ws_naves_anunciadas_sa.write_row('A1', encabezados_anunciadas_sa)
+
+#         for i, nave in enumerate(datos_naves_anunciadas_sa, start=1):
+#             ws_naves_anunciadas_sa.write(i, 0, nave.get("E.T.A.", "No disponible"))
+#             ws_naves_anunciadas_sa.write(i, 1, nave.get("Nave", "Sin información"))
+
+#         ws_naves_anunciadas_sa.set_tab_color('purple')
+
+#         workbook.close()
+#         return response
+
+#     else:
+#         print("Solicitud no válida")
+#         return HttpResponse("Solicitud no válida", status=400)
+
+def descargar_excel_naves_anunciadas(request):
+    print("Generando archivo Excel para naves anunciadas...")
+
+    # URLs de las páginas de Valparaíso y San Antonio para naves anunciadas
+    url_valparaiso_anunciadas = "https://pln.puertovalparaiso.cl/pln/"
+    url_san_antonio_anunciadas = "https://gessup.puertosanantonio.com/Planificaciones/general.aspx"
+
+    # Obtener datos de naves anunciadas
+    datos_naves_anunciadas_valpo = datos_valparaiso_anunciadas(url_valparaiso_anunciadas)
+    datos_naves_anunciadas_sa = datos_san_antonio_anunciadas(url_san_antonio_anunciadas)
+
+    # Preparar respuesta HTTP para descargar el Excel
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response['Content-Disposition'] = 'attachment; filename=naves_anunciadas.xlsx'
+
+    # Crear el archivo Excel con xlsxwriter
+    workbook = xlsxwriter.Workbook(response)
+
+    # Hoja: Valparaíso-Naves Anunciadas
+    ws_naves_anunciadas_valpo = workbook.add_worksheet("Valparaíso-NavesAnunciadas")
+    encabezados_anunciadas_valpo = ["Nave", "Fecha", "Hora", "PS"]
+    ws_naves_anunciadas_valpo.write_row('A1', encabezados_anunciadas_valpo)
+
+    for i, nave in enumerate(datos_naves_anunciadas_valpo, start=1):
+        ws_naves_anunciadas_valpo.write(i, 0, nave.get("Nave", "Sin información"))
+        ws_naves_anunciadas_valpo.write(i, 1, nave.get("Fecha", "No disponible"))
+        ws_naves_anunciadas_valpo.write(i, 2, nave.get("Hora", "No disponible"))
+        ws_naves_anunciadas_valpo.write(i, 3, nave.get("PS", "No disponible"))
+
+    # Hoja: San Antonio-Naves Anunciadas
+    ws_naves_anunciadas_sa = workbook.add_worksheet("SanAntonio-NavesAnunciadas")
+    encabezados_anunciadas_sa = ["E.T.A.", "Nave"]
+    ws_naves_anunciadas_sa.write_row('A1', encabezados_anunciadas_sa)
+
+    for i, nave in enumerate(datos_naves_anunciadas_sa, start=1):
+        ws_naves_anunciadas_sa.write(i, 0, nave.get("E.T.A.", "No disponible"))
+        ws_naves_anunciadas_sa.write(i, 1, nave.get("Nave", "Sin información"))
+
+    # Cerrar el archivo Excel
+    workbook.close()
+    return response
 
 
 def descargar_excel(request):
@@ -386,12 +535,6 @@ def descargar_excel(request):
         for idx in seleccionados_san_antonio:
             if idx < len(datos_san_antonio):
                 datos_seleccionados_san_antonio.append(datos_san_antonio[idx])
-
-        url_valparaiso_anunciadas = "https://pln.puertovalparaiso.cl/pln/"  
-        datos_naves_anunciadas_valpo = scrape_data(url_valparaiso_anunciadas)
-
-        url_san_antonio_anunciadas = "https://gessup.puertosanantonio.com/Planificaciones/general.aspx"  
-        datos_naves_anunciadas_sa = datos_san_antonio_anunciadas(url_san_antonio_anunciadas)
 
         response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         response['Content-Disposition'] = 'attachment; filename=naves_seleccionadas.xlsx'
@@ -441,36 +584,13 @@ def descargar_excel(request):
 
         ws_sanantonio.set_tab_color('blue')
 
-        # **Hoja 3: Valparaíso-Naves Anunciadas**
-        ws_naves_anunciadas_valpo = workbook.add_worksheet("Valparaíso-NavesAnunciadas")
-        encabezados_anunciadas_valpo = ["Nave", "Fecha", "Hora", "PS"]
-        ws_naves_anunciadas_valpo.write_row('A1', encabezados_anunciadas_valpo)
-
-        for i, nave in enumerate(datos_naves_anunciadas_valpo, start=1):
-            ws_naves_anunciadas_valpo.write(i, 0, nave.get("Nave", "Sin información"))
-            ws_naves_anunciadas_valpo.write(i, 1, nave.get("Fecha", "No disponible"))
-            ws_naves_anunciadas_valpo.write(i, 2, nave.get("Hora", "No disponible"))
-            ws_naves_anunciadas_valpo.write(i, 3, nave.get("PS", "No disponible"))
-
-        ws_naves_anunciadas_valpo.set_tab_color('orange')
-
-        # **Hoja 4: San Antonio-Naves Anunciadas**
-        ws_naves_anunciadas_sa = workbook.add_worksheet("SanAntonio-NavesAnunciadas")
-        encabezados_anunciadas_sa = ["E.T.A.", "Nave"]
-        ws_naves_anunciadas_sa.write_row('A1', encabezados_anunciadas_sa)
-
-        for i, nave in enumerate(datos_naves_anunciadas_sa, start=1):
-            ws_naves_anunciadas_sa.write(i, 0, nave.get("E.T.A.", "No disponible"))
-            ws_naves_anunciadas_sa.write(i, 1, nave.get("Nave", "Sin información"))
-
-        ws_naves_anunciadas_sa.set_tab_color('purple')
-
         workbook.close()
         return response
 
     else:
         print("Solicitud no válida")
         return HttpResponse("Solicitud no válida", status=400)
+
 
 def seleccionar_naves(request):
     if request.method == "POST":

@@ -8,4 +8,5 @@ urlpatterns = [
     path('seleccionar-naves/', views.seleccionar_naves, name='seleccionar_naves'),
     path('check_updates/', views.check_updates, name='check_updates'),
     path('descargar_excel/', views.descargar_excel, name='descargar_excel'),
+    path('descargar_excel_anunciadas/', views.descargar_excel_naves_anunciadas, name='descargar_excel_anunciadas'),
 ]
