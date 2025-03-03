@@ -27,6 +27,12 @@
       <header>
         <img src="{% static 'images/logo.jpg' %}" alt="Greenwish" class="img-logo" />
         <h1 class="title-puerto-maritimo">Greenwish Port Tracking</h1>
+
+        <div id="loading-container" style="display: none;">
+          <div class="spinner"></div> 
+          <p>Cargando datos...</p> 
+        </div>
+
         <div class="select-container">
           <form method="get">
             <label for="puerto">Seleccione el Puerto:</label>
@@ -69,18 +75,17 @@
       <h2 class="titlePuerto">Información de naves:</h2>
 
       {% if datos %}
-      
+        <form method="POST" action="{% url 'descargar_excel_anunciadas' %}">
+          {% csrf_token %}
+          <button type="submit" name="descargar_excel_anunciadas" class="btn-seleccionar">Descargar Excel Naves Anunciadas</button>
+        </form>
+        
         <form method="POST" action="{% url 'descargar_excel' %}">
           {% csrf_token %}
           <input type="hidden" name="puerto" value="{{ puerto }}">
           <button type="submit" name="descargar_excel" class="btn-seleccionar">Descargar Excel Naves Seleccionadas</button>
         </form>
 
-        <form method="POST" action="{% url 'descargar_excel_anunciadas' %}">
-          {% csrf_token %}
-          <button type="submit" name="descargar_excel_anunciadas" class="btn-seleccionar">Descargar Excel Naves Anunciadas</button>
-        </form>
-    
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="puerto" value="{{ puerto }}">
@@ -101,6 +106,16 @@
     </div>
 
     <script>
+      document.querySelector('.btn-cargar-datos').addEventListener('click', function(event) {
+        event.preventDefault();
+        
+        document.getElementById('loading-container').style.display = 'flex';
+
+        setTimeout(function() {
+          document.querySelector('form').submit();
+        }, 3000);
+      });
+    
       function checkUpdates() {
         var puerto = "{{ puerto }}";
         fetch("{% url 'check_updates' %}?puerto=" + encodeURIComponent(puerto))

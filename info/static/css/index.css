@@ -204,3 +204,42 @@ button:hover {
   cursor: pointer;
   background-color: #1a2b25;
 }
+
+#loading-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(18, 18, 18, 0.8);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.spinner {
+  border: 4px solid #1e1e1e;
+  border-top: 4px solid #00aaff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+p {
+  font-size: 16px;
+  font-weight: bold;
+  color: #00aaff;
+  margin-top: 10px;
+}

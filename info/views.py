@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 import urllib3
-import openpyxl
 from openpyxl.utils import get_column_letter
 import xlsxwriter 
 import re
@@ -116,7 +115,6 @@ def datos_san_antonio(url):
             "Upgrade-Insecure-Requests": "1"
         }
 
-        #response = requests.get(url, headers=headers, verify=False, timeout=30)
         response = requests.get(url, headers=headers, verify=False, timeout=15)
         response.raise_for_status()
 
@@ -306,7 +304,6 @@ def datos_valparaiso_anunciadas(url):
 
     return extracted_data
 
-
 def datos_san_antonio_anunciadas(url):
     try:
         headers = {
@@ -353,8 +350,6 @@ def datos_san_antonio_anunciadas(url):
     
     return []  
 
-
-
 def descargar_excel_naves_anunciadas(request):
     print("Generando archivo Excel para naves anunciadas...")
 
@@ -389,108 +384,6 @@ def descargar_excel_naves_anunciadas(request):
 
     workbook.close()
     return response
-
-
-# def descargar_excel(request):
-#     print("Entrando en la vista descargar_excel...")
-
-#     if 'descargar_excel' in request.POST:
-#         print("Formulario recibido con la opción de descarga.")
-
-#         global_selected_ships = request.session.get('selected_ships', {})
-#         seleccionados_valparaiso = global_selected_ships.get('Valparaíso', [])
-#         seleccionados_san_antonio = global_selected_ships.get('San Antonio', [])
-
-#         if not seleccionados_valparaiso and not seleccionados_san_antonio:
-#             print("No hay naves seleccionadas.")
-#             return HttpResponse("No hay naves seleccionadas.", status=400)
-
-#         datos_seleccionados_valparaiso = []
-#         datos_seleccionados_san_antonio = []
-
-#         datos_valparaiso, clave_valparaiso = cargar_datos("Valparaíso")
-#         for idx in seleccionados_valparaiso:
-#             if idx < len(datos_valparaiso):
-#                 datos_seleccionados_valparaiso.append(datos_valparaiso[idx])
-
-#         datos_san_antonio, clave_san_antonio = cargar_datos("San Antonio")
-#         for idx in seleccionados_san_antonio:
-#             if idx < len(datos_san_antonio):
-#                 datos_seleccionados_san_antonio.append(datos_san_antonio[idx])
-
-#         response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-#         response['Content-Disposition'] = 'attachment; filename=naves_seleccionadas.xlsx'
-
-#         workbook = xlsxwriter.Workbook(response)
-#         date_format = workbook.add_format({'num_format': 'dd/mm/yyyy'})
-
-#         # **Hoja 1: Valparaíso**
-#         ws_valparaiso = workbook.add_worksheet("Valparaíso")
-#         encabezados_valparaiso = ["Nombre Nave", "Fecha", "Hora"]
-#         ws_valparaiso.write_row('A1', encabezados_valparaiso)
-
-#         for i, nave in enumerate(datos_seleccionados_valparaiso, start=1):
-#             nombre = nave.get("Nombre Nave", "Pending")
-#             fecha_str = nave.get("Fecha", "Pending")
-#             hora = nave.get("Hora", "Pending")
-
-#             fecha_dt = parse_fecha(fecha_str, origen="valparaiso")
-
-#             ws_valparaiso.write(i, 0, nombre)
-#             if fecha_dt:
-#                 ws_valparaiso.write_datetime(i, 1, fecha_dt, date_format)
-#             else:
-#                 ws_valparaiso.write(i, 1, fecha_str)
-#             ws_valparaiso.write(i, 2, hora)
-
-#         ws_valparaiso.set_tab_color('green')
-
-#         # **Hoja 2: San Antonio**
-#         # ws_sanantonio = workbook.add_worksheet("San Antonio")
-#         # encabezados_sanantonio = ["Nombre Nave", "Fecha", "Hora"]
-#         # ws_sanantonio.write_row('A1', encabezados_sanantonio)
-
-#         # for i, nave in enumerate(datos_seleccionados_san_antonio, start=1):
-#         #     nombre = nave.get("nave", "Pending")
-#         #     fecha_str = nave.get("fecha", "Pending")
-#         #     hora = nave.get("hora", "Pending")
-
-#         #     fecha_dt = parse_fecha(fecha_str, origen="san_antonio")
-
-#         #     ws_sanantonio.write(i, 0, nombre)
-#         #     if fecha_dt:
-#         #         ws_sanantonio.write_datetime(i, 1, fecha_dt, date_format)
-#         #     else:
-#         #         ws_sanantonio.write(i, 1, fecha_str)
-#         #     ws_sanantonio.write(i, 2, hora)
-        
-#         ws_sanantonio = workbook.add_worksheet("San Antonio")
-#         encabezados_sanantonio = ["Nombre Nave", "Fecha", "Hora"]
-#         ws_sanantonio.write_row('A1', encabezados_sanantonio)
-
-#         for i, nave in enumerate(datos_seleccionados_san_antonio, start=1):
-#             nombre = nave.get("nave", "Pending")
-#             fecha_str = nave.get("fecha", "Pending")
-#             hora = nave.get("hora", "Pending")
-
-#             fecha_dt = parse_fecha(fecha_str, origen="san_antonio")
-
-#             ws_sanantonio.write(i, 0, nombre)
-#             if fecha_dt:
-#                 ws_sanantonio.write_datetime(i, 1, fecha_dt, date_format)
-#             else:
-#                 ws_sanantonio.write(i, 1, fecha_str)
-#             ws_sanantonio.write(i, 2, hora)
-
-#         ws_sanantonio.set_tab_color('blue')
-
-#         workbook.close()
-#         return response
-
-#     else:
-#         print("Solicitud no válida")
-#         return HttpResponse("Solicitud no válida", status=400)
-
 
 def descargar_excel(request):
     print("Entrando en la vista descargar_excel...")
@@ -570,7 +463,6 @@ def descargar_excel(request):
     else:
         print("Solicitud no válida")
         return HttpResponse("Solicitud no válida", status=400)
-
 
 def seleccionar_naves(request):
     if request.method == "POST":
