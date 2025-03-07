@@ -6,7 +6,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Greenwish | Información </title>
+    <title>Greenwish Port Tracking</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Signika:wght@300..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
@@ -32,15 +32,13 @@
           <div class="spinner"></div> 
           <p>Cargando datos...</p> 
         </div>
-
         <div class="select-container">
           <form method="get">
             <label for="puerto">Seleccione el Puerto:</label>
-            <select name="puerto" id="puerto">
+            <select name="puerto" id="puerto" onchange="this.form.submit()"> 
               <option value="Valparaíso" {% if puerto == "Valparaíso" %}selected{% endif %}>Valparaíso</option>
               <option value="San Antonio" {% if puerto == "San Antonio" %}selected{% endif %}>San Antonio</option>
             </select>
-            <button class="btn-cargar-datos" type="submit">Cargar Datos</button>
           </form>
         </div>
       </header>
@@ -106,7 +104,7 @@
     </div>
 
     <script>
-      document.querySelector('.btn-cargar-datos').addEventListener('click', function(event) {
+      {% comment %} document.querySelector('#puerto').addEventListener('onchange', function(event) {
         event.preventDefault();
         
         document.getElementById('loading-container').style.display = 'flex';
@@ -114,8 +112,18 @@
         setTimeout(function() {
           document.querySelector('form').submit();
         }, 3000);
-      });
+      }); {% endcomment %}
     
+      function showLoadingAndSubmit() {
+        // Mostrar el contenedor de carga
+        document.getElementById('loading-container').style.display = 'flex';
+        
+        // Enviar el formulario después de un pequeño retraso para permitir que el loader sea visible
+        setTimeout(function() {
+          document.querySelector('form').submit();  // Enviar el formulario automáticamente
+        }, 500); // 500 ms de retraso para hacer visible el loader antes de enviar
+      }
+
       function checkUpdates() {
         var puerto = "{{ puerto }}";
         fetch("{% url 'check_updates' %}?puerto=" + encodeURIComponent(puerto))

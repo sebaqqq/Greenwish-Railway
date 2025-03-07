@@ -24,8 +24,7 @@ def datos_valparaiso(url):
     html_texto = requests.get(url, verify=False).text
     soup = BeautifulSoup(html_texto, 'html.parser')
     
-    sitios = []
-    #for i in range(7, 15): 
+    sitios = [] 
     for i in range(7, 10): 
         sitio_div = soup.find("div", class_=f"pln-titulo{i}")
         if sitio_div:
@@ -49,7 +48,6 @@ def datos_valparaiso(url):
         fecha.append(fecha_result)
 
     for fila_idx in range(7): 
-        #for columna_idx in range(0, 9):
         for columna_idx in range(0, 4):  
             cellinfo = soup.find("div", class_=f"cellinfo-{fila_idx}-{columna_idx}")
             
@@ -146,7 +144,6 @@ def datos_san_antonio(url):
             filas = tabla.find_all('tr')
             for fila in filas:
                 celdas = fila.find_all('td')
-                # for celda in celdas:
                 for j, celda in enumerate(celdas[:5]):
                     texto = celda.get_text(strip=True).replace('\n', '')
                     if texto:
