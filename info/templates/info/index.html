@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Signika:wght@300..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=directions_boat" />
     <link
       rel="stylesheet"
       type="text/css"
@@ -25,75 +26,101 @@
   <body>
     <div class="container">
       <header>
-        <img src="{% static 'images/logo.jpg' %}" alt="Greenwish" class="img-logo" />
-        <h1 class="title-puerto-maritimo">Greenwish Port Tracking</h1>
-
-        <div id="loading-container" style="display: none;">
-          <div class="spinner"></div> 
-          <p>Cargando datos...</p> 
-        </div>
-        <div class="select-container">
-          <form method="get">
-            <label for="puerto">Seleccione el Puerto:</label>
-            <select name="puerto" id="puerto" onchange="this.form.submit()"> 
-              <option value="Valparaíso" {% if puerto == "Valparaíso" %}selected{% endif %}>Valparaíso</option>
-              <option value="San Antonio" {% if puerto == "San Antonio" %}selected{% endif %}>San Antonio</option>
-            </select>
-          </form>
-        </div>
+        <img src="{% static 'images/logo.jpg' %}" alt="Greenwish Port Tracking" class="img-logo" />
+        <h2 class="titlePuerto">Información de naves:</h2>
       </header>
 
       <div id="update-notification" style="display:none; background:transparent; padding:10px; border: 2px solid #275037; margin-top:10px; border-radius: 20px; margin-bottom: 40px;"></div>
 
-      {% if selected_ships %}
-        <h3 class="title-selected-ships">Mis naves seleccionadas:</h3>
-        <ul class="ship-list">
-          {% for idx in selected_ships %}
-            {% if datos|length > idx %}
-              <li class="ship-item">
-                {{ datos|index:idx|get_item:clave }}
-                <div class="ship-links">
-                  <a href="#" class="view-details" data-idx="{{ idx }}" data-puerto="{{ puerto }}">Ver Detalle</a>
-                  <a href="{% url 'eliminar_nave' puerto idx %}" class="remove-ship">Eliminar</a>
-                </div>
-                <div id="ship-details-{{ idx }}" class="ship-details" style="display: none; max-height: 0px; overflow: hidden; transition: max-height 0.5s ease-in-out; width:300px ">
-                  <button class="close-details" aria-label="Cerrar detalle">
-                    Cerrar detalle
-                  </button>                  
-                  <h3 class="title-detalle">Detalles de la nave</h3>
-                  <ul id="details-list-{{ idx }}">
-                  </ul>
-                </div>
-              </li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      {% endif %}
+      <div id="loading-container" style="display: none;">
+        <div class="spinner"></div> 
+        <p>Cargando datos...</p> 
+      </div>
+      <div class="select-container">
+        <form method="get">
+          <select name="puerto" id="puerto" onchange="this.form.submit()">
+            <option value="Valparaíso" {% if puerto == "Valparaíso" %}selected{% endif %}>Puerto seleccionado: Valparaíso</option>
+            <option value="San Antonio" {% if puerto == "San Antonio" %}selected{% endif %}>Puerto seleccionado: San Antonio</option>
+          </select>
+        </form>
+      </div> 
 
-      <h2 class="titlePuerto">Información de naves:</h2>
+      <div class="actions">
+        {% if datos %}
+          <form method="POST" action="{% url 'descargar_excel_anunciadas' %}">
+            {% csrf_token %}
+            <button type="submit" name="descargar_excel_anunciadas" class="download-btn">
+              Naves Anunciadas
+              <svg
+                class="download-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg> 
+            </button>
+          </form>
+          
+          <form method="POST" action="{% url 'descargar_excel' %}">
+            {% csrf_token %}
+            <input type="hidden" name="puerto" value="{{ puerto }}">
+            <button type="submit" name="descargar_excel" class="download-btn">
+              Planificación portuaria
+              <svg
+                class="download-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+          </form>
+        {% endif %}
+      </div>
 
       {% if datos %}
-        <form method="POST" action="{% url 'descargar_excel_anunciadas' %}">
-          {% csrf_token %}
-          <button type="submit" name="descargar_excel_anunciadas" class="btn-seleccionar">Descargar Excel Naves Anunciadas</button>
-        </form>
-        
-        <form method="POST" action="{% url 'descargar_excel' %}">
-          {% csrf_token %}
-          <input type="hidden" name="puerto" value="{{ puerto }}">
-          <button type="submit" name="descargar_excel" class="btn-seleccionar">Descargar Excel Naves Seleccionadas</button>
-        </form>
-
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="puerto" value="{{ puerto }}">
-          <button class="btn-seleccionar" type="submit">Seleccionar Naves</button>
           <div class="card-container">
             {% for item in datos %}
               <div class="card">
-                <input type="checkbox" name="selected_ship" value="{{ forloop.counter0 }}"
-                  {% if forloop.counter0 in selected_ships %}checked{% endif %} class="select-item">
-                <label>{{ forloop.counter }}. {{ item|get_item:clave }}</label>
+                <span 
+                  class="material-symbols-outlined" 
+                  style="
+                    position: absolute;
+                    top: 7px;
+                    right: 7px;
+                    width: 20px;
+                    height: 20px;
+                    opacity: 0.5;
+                  "
+                >
+                  directions_boat
+                </span>
+                <label class='title-nave'>{{ item|get_item:clave }}</label>
+        
+                <div class="ship-details">
+                  <ul id="details-list-{{ forloop.counter0 }}">
+                    {% for key, value in item.items %}
+                      <li><strong>{{ key }}:</strong> {{ value }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
               </div>
             {% endfor %}
           </div>
@@ -104,7 +131,7 @@
     </div>
 
     <script>
-      {% comment %} document.querySelector('#puerto').addEventListener('onchange', function(event) {
+      document.querySelector('#puerto').addEventListener('onchange', function(event) {
         event.preventDefault();
         
         document.getElementById('loading-container').style.display = 'flex';
@@ -112,17 +139,7 @@
         setTimeout(function() {
           document.querySelector('form').submit();
         }, 3000);
-      }); {% endcomment %}
-    
-      function showLoadingAndSubmit() {
-        // Mostrar el contenedor de carga
-        document.getElementById('loading-container').style.display = 'flex';
-        
-        // Enviar el formulario después de un pequeño retraso para permitir que el loader sea visible
-        setTimeout(function() {
-          document.querySelector('form').submit();  // Enviar el formulario automáticamente
-        }, 500); // 500 ms de retraso para hacer visible el loader antes de enviar
-      }
+      }); 
 
       function checkUpdates() {
         var puerto = "{{ puerto }}";
