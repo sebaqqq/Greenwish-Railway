@@ -1,10 +1,27 @@
 :root {
   --background-color: #121212;
-  --primary-color: #1e5237;
-  --primary-hover: #2a6b48;
+  --primary-color: #275037;
+  --primary-hover: #1a2b25;
   --text-color: #ffffff;
   --border-color: #333333;
   --card-background: #1e1e1e;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 22px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
 }
 
 * {
@@ -236,7 +253,7 @@ button:hover {
 
 .ship-details {
   padding: 10px;
-  background-color: #1e1e1e;
+  background-color: transparent;
 }
 
 .ship-details ul {
