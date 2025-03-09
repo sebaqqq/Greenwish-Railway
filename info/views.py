@@ -68,7 +68,7 @@ def datos_valparaiso(url):
                 "Nombre Nave": nombre_nave,
                 "Fecha": fecha[fila_idx],  
                 "Hora": hora,
-                "Posición": posicion,
+                # "Posición": posicion,
                 "Sitio": sitios[columna_idx - 1] if columna_idx - 1 < len(sitios) else "Sin Sitio"
             })
             
@@ -113,7 +113,7 @@ def datos_san_antonio(url):
             "Upgrade-Insecure-Requests": "1"
         }
 
-        response = requests.get(url, headers=headers, verify=False, timeout=15)
+        response = requests.get(url, headers=headers, verify=False, timeout=16)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -313,7 +313,7 @@ def datos_san_antonio_anunciadas(url):
             "Upgrade-Insecure-Requests": "1"
         }
 
-        response = requests.get(url, headers=headers, verify=False, timeout=14)
+        response = requests.get(url, headers=headers, verify=False, timeout=15)
         response.raise_for_status()  
 
         soup = BeautifulSoup(response.text, 'html.parser')

@@ -27,7 +27,7 @@
     <div class="container">
       <header>
         <img src="{% static 'images/logo.jpg' %}" alt="Greenwish Port Tracking" class="img-logo" />
-        <h2 class="titlePuerto">Información de naves:</h2>
+        <h2 class="titlePuerto">Greenwish Port Tracking:</h2>
       </header>
 
       <div id="update-notification" style="display:none; background:transparent; padding:10px; border: 2px solid #275037; margin-top:10px; border-radius: 20px; margin-bottom: 40px;"></div>
@@ -135,11 +135,12 @@
         event.preventDefault();
         
         document.getElementById('loading-container').style.display = 'flex';
-
+      
         setTimeout(function() {
           document.querySelector('form').submit();
         }, 3000);
-      }); 
+      });
+      
 
       function checkUpdates() {
         var puerto = "{{ puerto }}";
