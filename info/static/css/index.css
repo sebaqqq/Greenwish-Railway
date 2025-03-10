@@ -58,12 +58,6 @@ body {
   padding: 20px;
 }
 
-.title-puerto-maritimo {
-  color: white;
-  font-size: 22px;
-  font-weight: bold;
-}
-
 ul {
   list-style-type: none;
   padding-left: 0;
@@ -166,7 +160,7 @@ button:hover {
 
 .titlePuerto {
   color: white;
-  font-size: 22px;
+  font-size: 30px;
   font-weight: bold;
   margin-bottom: 40px;
   margin-left: 10px;
@@ -195,7 +189,7 @@ button:hover {
   text-align: center;
 }
 
-/* .card {
+.card {
   background-color: #1e1e1e;
   border: 2px solid #275037;
   color: white;
@@ -209,21 +203,6 @@ button:hover {
   transition: transform 0.3s ease;
   position: relative;
   padding-top: 30px;
-} */
-
-.card {
-  background-color: transparent;
-  border: 2px solid #275037;
-  color: white;
-  border-radius: 8px;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
-  position: relative;
 }
 
 .card:hover {

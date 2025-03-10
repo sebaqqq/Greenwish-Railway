@@ -81,23 +81,22 @@ def limpiar_json(datos):
         if not d['nave']:  
             continue
 
-        if d['metros']:
-            d['metros'] = re.sub(r'^0+', '', d['metros']) 
-
         fecha_texto = d['fecha']
         if fecha_texto:
             try:
                 dia = int(fecha_texto.split()[0])  
-                
-                fecha_comparable = datetime(2024, 2, dia) 
+                fecha_comparable = datetime(2024, 2, dia)  
 
                 if d['nave'] not in naves_menor_fecha or fecha_comparable < naves_menor_fecha[d['nave']]['fecha_comparable']:
                     naves_menor_fecha[d['nave']] = {**d, 'fecha_comparable': fecha_comparable}
 
             except ValueError:
-                continue 
+                continue  
 
-    datos_filtrados = [{k: v for k, v in nave.items() if k != 'fecha_comparable'} for nave in naves_menor_fecha.values()]
+    datos_filtrados = [
+        {k: v for k, v in nave.items() if k not in ['fecha_comparable', 'metros']} 
+        for nave in naves_menor_fecha.values()
+    ]
 
     return datos_filtrados
 
@@ -148,14 +147,15 @@ def datos_san_antonio(url):
                     texto = celda.get_text(strip=True).replace('\n', '')
                     if texto:
                         hora = re.search(r'(\d{2}:\d{2})', texto)
-                        metros = re.search(r'(\d+\.?\d*)m', texto)
+                        # metros = re.search(r'(\d+\.?\d*)m', texto)
                         nave = re.sub(r'(\d{2}:\d{2})|(\d+\.?\d*m)', '', texto).strip().upper()
 
-                        if hora or metros or nave:
+                        #if hora or metros or nave:
+                        if hora or nave:
                             datos.append({
                                 'fecha': fechas_texto[fecha_index] if fecha_index < len(fechas_texto) else None,
                                 'hora': hora.group(0) if hora else None,
-                                'metros': metros.group(0) if metros else None,
+                                # 'metros': metros.group(0) if metros else None,
                                 'nave': nave if nave else None
                             })
             if (i + 1) % celdas_por_fecha == 0 and fecha_index + 1 < len(fechas_texto):
