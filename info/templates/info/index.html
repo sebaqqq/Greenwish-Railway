@@ -33,7 +33,7 @@
       </div>
       <div class="select-container">
         <form method="get">
-          <select name="puerto" id="puerto" onchange="this.form.submit()">
+          <select name="puerto" class="puerto" id="puerto" onchange="this.form.submit()">
             <option value="Valparaíso" {% if puerto == "Valparaíso" %}selected{% endif %}>Puerto seleccionado: Valparaíso</option>
             <option value="San Antonio" {% if puerto == "San Antonio" %}selected{% endif %}>Puerto seleccionado: San Antonio</option>
           </select>
@@ -126,7 +126,7 @@
     </div>
 
     <script>
-      document.querySelector('#puerto').addEventListener('onchange', function(event) {
+      document.querySelector('.puerto').addEventListener('change', function(event) {
         event.preventDefault();
         
         document.getElementById('loading-container').style.display = 'flex';
