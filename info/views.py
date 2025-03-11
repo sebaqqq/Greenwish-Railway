@@ -274,15 +274,15 @@ def datos_valparaiso_anunciadas(url):
     current_nave = None
 
     for row in rows:
+        nave_element = row.select_one('.fila-estrecha > div > .pln-anuncio-nave')
+        if nave_element:
+            current_nave = nave_element.get_text(strip=True) 
+        
         divs = row.select('.fila-estrecha > div')
         text_content = " ".join([div.get_text(" ", strip=True) for div in divs])
 
-        nave_match = re.findall(r'\b[A-Z\s]+\b', text_content)
-        if nave_match:
-            current_nave = nave_match[0].strip()
-
         fecha, hora, ps = "No disponible", "No disponible", "No disponible"
-        
+
         fecha_hora_match = re.findall(r'(\d{2}/\d{2}/\d{2}) (\d{2}:\d{2})', text_content)
         if fecha_hora_match:
             fecha, hora = fecha_hora_match[0]
